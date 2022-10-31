@@ -3,3 +3,4 @@ Lib/
 Scripts/
 venv/
 .vs/
+db/__pycache__
