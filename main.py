@@ -2,7 +2,8 @@ import telebot
 import datetime
 from os import listdir
 import json
-from telebot.types import ReplyKeyboardMarkup, KeyboardButton
+from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InputFile, ReplyKeyboardRemove
+from telebot.util import quick_markup
 from db.__all_models import *
 from db.db_session import *
 
@@ -31,6 +32,23 @@ for filename in quiz_file_list:
         quizes.append(json.loads(quiz_file.read()))
 
 
+# guide_messages =
+with open('data/match.json', 'rt') as match_file:
+    guide_messages = json.loads(match_file.read())
+# for key in guide_messages:
+#     for sub_key in guide_messages[key]:
+#         with open('data/' + guide_messages[key][sub_key], 'rb') as mp3_file:
+#             guide_messages[key][sub_key] = InputFile(mp3_file)
+
+
+@bot.message_handler(commands=['voice'])
+def test_voice(message):
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+    for i in guide_messages.keys():
+        keyboard.add(KeyboardButton(i))
+    bot.send_message(message.chat.id, 'Выберите выставку', reply_markup=keyboard)
+
+
 @bot.message_handler(commands=['start', 'help'])
 def start(message):
     bot.reply_to(message, 'Hello world!')
@@ -45,13 +63,14 @@ def faq(message):
     bot.send_message(message.chat.id, faq_message_text, reply_markup=faq_keyboard)
 
 
-# @bot.callback_query_handler(func=lambda call: True)
-# def callback_hanler(call):
-#     global faq_smiles, faq_keyboard, faq_questions
-#     if call.data in faq_smiles:
-#         bot.send_message(call.message.chat.id, faq_questions[faq_smiles.index(call.data)][2],
-#                          reply_markup=faq_keyboard)
-#     bot.answer_callback_query(call.id)
+@bot.callback_query_handler(func=lambda call: True)
+def callback_handler(call):
+    if '&' in call.data:
+        exhibit_name, stand_n = call.data.split('&')
+        with open('data/' + guide_messages[exhibit_name][stand_n], 'rb') as mp3_file:
+            bot.send_voice(call.message.chat.id, InputFile(mp3_file), reply_markup=ReplyKeyboardRemove())
+
+    bot.answer_callback_query(call.id)
 
 
 @bot.message_handler(commands=['test_bd'])
@@ -70,6 +89,12 @@ def test_bd(message):
 def text_handler(message):
     if message.text in faq_names:
         bot.send_message(message.chat.id, faq_questions[faq_names.index(message.text)][2])
+    elif message.text in guide_messages.keys():
+        values = {}
+        for i in guide_messages[message.text].keys():
+            values[i] = {'callback_data': f'{message.text}&{i}'}
+        keyboard = quick_markup(values=values, row_width=2)
+        bot.send_message(message.chat.id, 'Выберите цифру', reply_markup=keyboard)
 
 
 bot.infinity_polling()
