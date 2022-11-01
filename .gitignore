@@ -4,3 +4,4 @@ Scripts/
 venv/
 .vs/
 db/__pycache__
+.idea/

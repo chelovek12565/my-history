@@ -3,11 +3,11 @@ from colorama import init, Fore
 
 init(autoreset=True)
 print('Редактор вопросов.')
-print('Файл вопроса по умолчанию - faq_questions.json. Это верно? Y/n')
+print('Файл вопроса по умолчанию - questions.json. Это верно? Y/n')
 answer = input()
 if answer.lower() == 'y':
-    file = open('faq_questions.json', 'rt')
-    file_name = 'faq_questions.json'
+    file = open('quizes/questions.json', 'rt')
+    file_name = 'quizes/questions.json'
 else:
     while True:
             file_name = input("Введите имя json-файла: ")
@@ -37,11 +37,22 @@ while True:
     elif answer == '1':
         print("Введите заголовок вопроса:")
         name = input()
-        print("Введите смайлик для вопроса:")
-        smile = input()
-        print('Введите вопрос:')
-        text = input()
-        data.append([name, smile, text])
+        text = []
+        while True:
+            print('Вводите варианты ответа, 0 - конец ввода')
+            question = input()
+            if question == '0':
+                break
+            else:
+                text.append(question)
+        print('Введите номер ответа:')
+        n = int(input())
+        while n > len(text):
+            print('Слишком большое число, попробуйте снова')
+            print('Введите номер ответа:')
+            n = int(input())
+
+        data.([name, n, text])
     # elif answer == '2':
 file.close()
 with open(file_name, 'wt') as file:
